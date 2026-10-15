@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agarbatti Rate Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    padding: 16px;
+    color: #222;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 {
+    font-size: 22px;
+    margin-bottom: 16px;
+    color: #1a1a1a;
+  }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card h2 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+  }
+  input[type="number"]:focus {
+    border-color: #4f46e5;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .label { color: #666; }
+  .result-row .value { font-weight: 600; }
+  .highlight {
+    background: #eef2ff;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+  .highlight .result-row .value { color: #4f46e5; font-size: 16px; }
+  .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4f46e5;
+    margin: 12px 0 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🪔 Agarbatti Rate Calculator</h1>
+
+  <!-- INPUTS -->
+  <div class="card">
+    <h2>📥 Input Parameters</h2>
+    <div class="grid">
+      <div>
+        <label>Total Pcs</label>
+        <input type="number" id="total_pcs" value="40000">
+      </div>
+      <div>
+        <label>Pcs per Box</label>
+        <input type="number" id="pcs_per_box" value="12">
+      </div>
+      <div>
+        <label>Stick Rate (₹/kg)</label>
+        <input type="number" id="stick_rate" value="130">
+      </div>
+      <div>
+        <label>Premix Rate (₹/kg)</label>
+        <input type="number" id="premix_rate" value="22">
+      </div>
+      <div>
+        <label>DEP Oil Rate (₹/kg)</label>
+        <input type="number" id="oil_rate" value="154">
+      </div>
+      <div>
+        <label>Perfume Rate (₹/kg)</label>
+        <input type="number" id="perfume_rate" value="800">
+      </div>
+      <div>
+        <label>Box Rate (₹/pc)</label>
+        <input type="number" id="box_rate" value="1.60">
+      </div>
+      <div>
+        <label>Pouch Rate (₹/kg)</label>
+        <input type="number" id="pouch_rate" value="170">
+      </div>
+      <div>
+        <label>Labour (₹/kg)</label>
+        <input type="number" id="labour_rate" value="2">
+      </div>
+      <div>
+        <label>Wastage (%)</label>
+        <input type="number" id="wastage" value="5">
+      </div>
+      <div>
+        <label>Mfg Rate (₹/kg)</label>
+        <input type="number" id="mfg_rate" value="100">
+      </div>
+      <div>
+        <label>My Margin (%)</label>
+        <input type="number" id="my_margin" value="30">
+      </div>
+      <div>
+        <label>BIL Commission (%)</label>
+        <input type="number" id="bil_commission" value="10">
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS: KHUD MANUFACTURE -->
+  <div class="card">
+    <h2>🔹 Khud Manufacture</h2>
+    <div id="result_self"></div>
+  </div>
+
+  <!-- RESULTS: MANUFACTURER SE -->
+  <div class="card">
+    <h2>🔹 Manufacturer Se Kharid</h2>
+    <div id="result_mfg"></div>
+  </div>
+
+  <!-- COMPARISON -->
+  <div class="card">
+    <h2>🔹 Comparison</h2>
+    <div id="result_compare"></div>
+  </div>
+</div>
+
+<script>
+// ============ CALCULATION FUNCTION ============
+function calculate() {
+  const get = id => parseFloat(document.getElementById(id).value) || 0;
+
+  const total_pcs = get('total_pcs');
+  const pcs_per_box = get('pcs_per_box');
+  const stick_rate = get('stick_rate');
+  const premix_rate = get('premix_rate');
+  const oil_rate = get('oil_rate');
+  const perfume_rate = get('perfume_rate');
+  const box_rate = get('box_rate');
+  const pouch_rate = get('pouch_rate');
+  const labour_rate = get('labour_rate');
+  const wastage_pct = get('wastage');
+  const mfg_rate = get('mfg_rate');
+  const my_margin = get('my_margin');
+  const bil_comm = get('bil_commission');
+
+  // Basic
+  const total_boxes = total_pcs / pcs_per_box;
+  const stick_kg = total_pcs / 3600;
+  const premix_kg = stick_kg * 2.6;
+  const raw_kg = stick_kg + premix_kg;
+  const ratio = raw_kg / 40;
+
+  const oil_cost = 10 * ratio * oil_rate;
+  const perfume_cost = 2 * ratio * perfume_rate;
+  const labour_cost = raw_kg * labour_rate;
+  const box_cost = total_boxes * box_rate;
+  const pouch_cost = 2 * pouch_rate;
+  const packing_total = box_cost + pouch_cost;
+
+  // 1. Khud Manufacture
+  const raw_cost_self = (stick_kg * stick_rate) + (premix_kg * premix_rate);
+  const material_self = raw_cost_self + oil_cost + perfume_cost + labour_cost;
+  const wastage_self = material_self * (wastage_pct / 100);
+  const total_material_self = material_self + wastage_self;
+  const total_cost_self = total_material_self + packing_total;
+  const cost_per_box_self = total_cost_self / total_boxes;
+  const material_per_kg_self = total_material_self / raw_kg;
+
+  // 2. Manufacturer Se
+  const raw_cost_mfg = raw_kg * mfg_rate;
+  const material_mfg = raw_cost_mfg + oil_cost + perfume_cost + labour_cost;
+  const wastage_mfg = material_mfg * (wastage_pct / 100);
+  const total_material_mfg = material_mfg + wastage_mfg;
+  const total_cost_mfg = total_material_mfg + packing_total;
+  const cost_per_box_mfg = total_cost_mfg / total_boxes;
+  const material_per_kg_mfg = total_material_mfg / raw_kg;
+
+  // 3. Comparison
+  const saving_box = cost_per_box_mfg - cost_per_box_self;
+  const saving_total = total_cost_mfg - total_cost_self;
+  const saving_pct = (saving_total / total_cost_mfg) * 100;
+
+  // 4. Pricing
+  function pricing(cost_box) {
+    const my_m = cost_box * (my_margin / 100);
+    const bil_c = cost_box * (bil_comm / 100);
+    const retailer_price = cost_box + my_m + bil_c;
+    const retailer_mrp = retailer_price * 1.40;
+    return { cost_box, my_m, bil_c, retailer_price, retailer_mrp };
+  }
+  const p_self = pricing(cost_per_box_self);
+  const p_mfg = pricing(cost_per_box_mfg);
+
+  // ============ RENDER ============
+  const fmt = n => '₹' + n.toFixed(2);
+  const fmtInt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+
+  function row(label, value, highlight) {
+    return `<div class="result-row${highlight ? ' highlight' : ''}">
+      <span class="label">${label}</span>
+      <span class="value">${value}</span>
+    </div>`;
+  }
+
+  // Self
+  document.getElementById('result_self').innerHTML = `
+    ${row('Total Boxes', Math.round(total_boxes).toLocaleString('en-IN'))}
+    ${row('Raw Agarbatti', raw_kg.toFixed(2) + ' kg')}
+    ${row('Material Cost', fmtInt(total_material_self))}
+    ${row('Packing Cost', fmtInt(packing_total))}
+    ${row('Total Cost', fmtInt(total_cost_self))}
+    ${row('Material per KG', fmt(material_per_kg_self))}
+    ${row('Cost per Box', fmt(cost_per_box_self))}
+    <div class="section-title">Retailer Pricing</div>
+    ${row('Tera Margin (' + my_margin + '%)', fmt(p_self.my_m))}
+    ${row('BIL Commission (' + bil_comm + '%)', fmt(p_self.bil_c))}
+    ${row('Retailer Price', fmt(p_self.retailer_price), true)}
+    ${row('Retailer MRP', fmt(p_self.retailer_mrp))}
+  `;
+
+  // Mfg
+  document.getElementById('result_mfg').innerHTML = `
+    ${row('Raw Agarbatti', raw_kg.toFixed(2) + ' kg')}
+    ${row('Material Cost', fmtInt(total_material_mfg))}
+    ${row('Packing Cost', fmtInt(packing_total))}
+    ${row('Total Cost', fmtInt(total_cost_mfg))}
+    ${row('Material per KG', fmt(material_per_kg_mfg))}
+    ${row('Cost per Box', fmt(cost_per_box_mfg))}
+    <div class="section-title">Retailer Pricing</div>
+    ${row('Tera Margin (' + my_margin + '%)', fmt(p_mfg.my_m))}
+    ${row('BIL Commission (' + bil_comm + '%)', fmt(p_mfg.bil_c))}
+    ${row('Retailer Price', fmt(p_mfg.retailer_price), true)}
+    ${row('Retailer MRP', fmt(p_mfg.retailer_mrp))}
+  `;
+
+  // Compare
+  document.getElementById('result_compare').innerHTML = `
+    ${row('Saving per Box', fmt(saving_box))}
+    ${row('Saving Total', fmtInt(saving_total), true)}
+    ${row('Saving %', saving_pct.toFixed(1) + '%')}
+  `;
+}
+
+// ============ ATTACH LISTENERS ============
+document.querySelectorAll('input').forEach(input => {
+  input.addEventListener('input', calculate);
+});
+
+// Initial calculation
+calculate();
+</script>
+</body>
+</html>
