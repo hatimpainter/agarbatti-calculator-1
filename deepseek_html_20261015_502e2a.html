@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agarbatti Business Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding-bottom: 40px;
+  }
+  .header {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+    padding: 20px 16px 16px;
+    text-align: center;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .header p { font-size: 12px; opacity: 0.85; }
+  .tabs {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    user-select: none;
+  }
+  .tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+  .content { max-width: 900px; margin: 0 auto; padding: 14px 12px; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+  }
+  .card h2 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    background: #fafafa;
+  }
+  input[type="number"]:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .label { color: var(--text-light); }
+  .result-row .value { font-weight: 600; }
+  .highlight {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-top: 8px;
+    border: 1px solid #c7d2fe;
+  }
+  .highlight .result-row { border-bottom: none; padding: 5px 0; }
+  .highlight .result-row .value { color: var(--primary-dark); font-size: 17px; font-weight: 700; }
+  .highlight .result-row .label { color: var(--primary-dark); font-weight: 600; }
+  .profit-positive { color: var(--success) !important; }
+  .profit-negative { color: var(--danger) !important; }
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 14px 0 6px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+  }
+  .btn {
+    padding: 11px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-save { background: var(--primary); color: white; }
+  .btn-load { background: #64748b; color: white; }
+  .btn-reset { background: #f1f5f9; color: #475569; }
+  #m_status, #t_status { margin-top: 10px; font-size: 13px; font-weight: 500; }
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-orange { background: #fed7aa; color: #92400e; }
+  .note {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🪔 Agarbatti Business Calculator</h1>
+  <p>Trading & Manufacturing — India Rates 2026</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('trading', this)">📦 Trading</div>
+  <div class="tab" onclick="switchTab('manufacture', this)">🏭 Manufacture</div>
+</div>
+
+<div class="content">
+
+  <!-- ============ TRADING PAGE ============ -->
+  <div id="page-trading" class="page active">
+
+    <div class="card">
+      <h2>📥 Purchase Inputs <span class="badge badge-orange">Trading</span></h2>
+      <div class="grid">
+        <div>
+          <label>Manufacturer Rate (₹/kg)</label>
+          <input type="number" id="t_purchase_rate" value="130">
+          <div class="note">Surat local: ₹120–160/kg</div>
+        </div>
+        <div>
+          <label>Quantity (kg)</label>
+          <input type="number" id="t_qty_kg" value="40">
+        </div>
+        <div>
+          <label>Sticks per kg (生香)</label>
+          <input type="number" id="t_sticks_per_kg" value="1100">
+          <div class="note">India average: 1000–1300 pcs/kg</div>
+        </div>
+        <div>
+          <label>Sticks per Box</label>
+          <input type="number" id="t_pcs_per_box" value="12">
+        </div>
+        <div>
+          <label>Box Rate (₹/pc)</label>
+          <input type="number" id="t_box_rate" value="1.60">
+        </div>
+        <div>
+          <label>Pouch Rate (₹/kg)</label>
+          <input type="number" id="t_pouch_rate" value="170">
+        </div>
+        <div>
+          <label>Transport (₹/kg)</label>
+          <input type="number" id="t_transport" value="5">
+        </div>
+        <div>
+          <label>Wastage (%)</label>
+          <input type="number" id="t_wastage" value="3">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💰 Margin & Commission</h2>
+      <div class="grid">
+        <div>
+          <label>My Margin (%)</label>
+          <input type="number" id="t_my_margin" value="30">
+        </div>
+        <div>
+          <label>BIL Commission (%)</label>
+          <input type="number" id="t_bil_commission" value="10">
+        </div>
+        <div>
+          <label>Retailer Margin (%)</label>
+          <input type="number" id="t_retailer_margin" value="40">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Cost Breakdown</h2>
+      <div id="t_result_cost"></div>
+    </div>
+
+    <div class="card">
+      <h2>💵 Pricing & Profit</h2>
+      <div id="t_result_pricing"></div>
+    </div>
+
+    <div class="card">
+      <h2>💾 Save / Load</h2>
+      <button class="btn btn-save" onclick="saveLocal('trading')">💾 Save</button>
+      <button class="btn btn-load" onclick="loadLocal('trading')">📂 Load</button>
+      <button class="btn btn-reset" onclick="resetDefaults('trading')">🔄 Reset</button>
+      <div id="t_status"></div>
+    </div>
+
+  </div>
+
+  <!-- ============ MANUFACTURE PAGE ============ -->
+  <div id="page-manufacture" class="page">
+
+    <div class="card">
+      <h2>📥 Raw Material <span class="badge badge-blue">Manufacture</span></h2>
+      <div class="grid">
+        <div>
+          <label>Bamboo Stick (₹/kg)</label>
+          <input type="number" id="m_stick_rate" value="130">
+          <div class="note">India: ₹90–138/kg</div>
+        </div>
+        <div>
+          <label>Premix Powder (₹/kg)</label>
+          <input type="number" id="m_premix_rate" value="22">
+        </div>
+        <div>
+          <label>Sticks per kg (光竹签)</label>
+          <input type="number" id="m_sticks_per_kg" value="3600">
+          <div class="note">光竹签: 3600 pcs/kg</div>
+        </div>
+        <div>
+          <label>Premix Ratio (× stick)</label>
+          <input type="number" id="m_premix_ratio" value="2.6" step="0.1">
+          <div class="note">1 kg stick + 2.6 kg premix</div>
+        </div>
+        <div>
+          <label>DEP Oil Rate (₹/kg)</label>
+          <input type="number" id="m_oil_rate" value="180">
+          <div class="note">2026: ₹180/kg (80% ↑)</div>
+        </div>
+        <div>
+          <label>Perfume Rate (₹/kg)</label>
+          <input type="number" id="m_perfume_rate" value="800">
+        </div>
+        <div>
+          <label>Oil Qty (kg per 40kg raw)</label>
+          <input type="number" id="m_oil_qty" value="10">
+        </div>
+        <div>
+          <label>Perfume Qty (kg per 40kg raw)</label>
+          <input type="number" id="m_perfume_qty" value="2">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Production & Packing</h2>
+      <div class="grid">
+        <div>
+          <label>Total Sticks to Produce</label>
+          <input type="number" id="m_total_pcs" value="40000">
+        </div>
+        <div>
+          <label>Sticks per Box</label>
+          <input type="number" id="m_pcs_per_box" value="12">
+        </div>
+        <div>
+          <label>Box Rate (₹/pc)</label>
+          <input type="number" id="m_box_rate" value="1.60">
+        </div>
+        <div>
+          <label>Pouch Rate (₹/kg)</label>
+          <input type="number" id="m_pouch_rate" value="170">
+        </div>
+        <div>
+          <label>Pouch Qty (kg)</label>
+          <input type="number" id="m_pouch_qty" value="2">
+        </div>
+        <div>
+          <label>Labour (₹/kg)</label>
+          <input type="number" id="m_labour_rate" value="10">
+        </div>
+        <div>
+          <label>Wastage (%)</label>
+          <input type="number" id="m_wastage" value="5">
+        </div>
+        <div>
+          <label>Transport Inward (₹/kg)</label>
+          <input type="number" id="m_transport" value="3">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💰 Margin & Commission</h2>
+      <div class="grid">
+        <div>
+          <label>My Margin (%)</label>
+          <input type="number" id="m_my_margin" value="30">
+        </div>
+        <div>
+          <label>BIL Commission (%)</label>
+          <input type="number" id="m_bil_commission" value="10">
+        </div>
+        <div>
+          <label>Retailer Margin (%)</label>
+          <input type="number" id="m_retailer_margin" value="40">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Cost Breakdown</h2>
+      <div id="m_result_cost"></div>
+    </div>
+
+    <div class="card">
+      <h2>💵 Pricing & Profit</h2>
+      <div id="m_result_pricing"></div>
+    </div>
+
+    <div class="card">
+      <h2>💾 Save / Load</h2>
+      <button class="btn btn-save" onclick="saveLocal('manufacture')">💾 Save</button>
+      <button class="btn btn-load" onclick="loadLocal('manufacture')">📂 Load</button>
+      <button class="btn btn-reset" onclick="resetDefaults('manufacture')">🔄 Reset</button>
+      <div id="m_status"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ============ TAB SWITCH ============
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+}
+
+// ============ DEFAULTS ============
+const DEFAULTS = {
+  trading: {
+    t_purchase_rate: 130, t_qty_kg: 40, t_sticks_per_kg: 1100,
+    t_pcs_per_box: 12, t_box_rate: 1.60, t_pouch_rate: 170,
+    t_transport: 5, t_wastage: 3,
+    t_my_margin: 30, t_bil_commission: 10, t_retailer_margin: 40
+  },
+  manufacture: {
+    m_stick_rate: 130, m_premix_rate: 22, m_sticks_per_kg: 3600,
+    m_premix_ratio: 2.6, m_oil_rate: 180, m_perfume_rate: 800,
+    m_oil_qty: 10, m_perfume_qty: 2,
+    m_total_pcs: 40000, m_pcs_per_box: 12, m_box_rate: 1.60,
+    m_pouch_rate: 170, m_pouch_qty: 2, m_labour_rate: 10,
+    m_wastage: 5, m_transport: 3,
+    m_my_margin: 30, m_bil_commission: 10, m_retailer_margin: 40
+  }
+};
+
+// ============ HELPERS ============
+const fmt = n => '₹' + n.toFixed(2);
+const fmtInt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+
+function row(label, value, cls) {
+  return `<div class="result-row">
+    <span class="label">${label}</span>
+    <span class="value ${cls || ''}">${value}</span>
+  </div>`;
+}
+
+function highlight(label, value, cls) {
+  return `<div class="highlight">
+    <div class="result-row">
+      <span class="label">${label}</span>
+      <span class="value ${cls || ''}">${value}</span>
+    </div>
+  </div>`;
+}
+
+// ============ TRADING CALC ============
+function calculateTrading() {
+  const get = id => parseFloat(document.getElementById(id).value) || 0;
+
+  const purchase_rate = get('t_purchase_rate');
+  const qty_kg = get('t_qty_kg');
+  const sticks_per_kg = get('t_sticks_per_kg');
+  const pcs_per_box = get('t_pcs_per_box');
+  const box_rate = get('t_box_rate');
+  const pouch_rate = get('t_pouch_rate');
+  const transport = get('t_transport');
+  const wastage = get('t_wastage');
+  const my_margin = get('t_my_margin');
+  const bil_comm = get('t_bil_commission');
+  const retailer_margin = get('t_retailer_margin');
+
+  const total_pcs = qty_kg * sticks_per_kg;
+  const total_boxes = pcs_per_box > 0 ? total_pcs / pcs_per_box : 0;
+
+  const purchase_cost = qty_kg * purchase_rate;
+  const transport_cost = qty_kg * transport;
+  const box_cost = total_boxes * box_rate;
+  const pouch_cost = (qty_kg / 40) * 2 * pouch_rate;
+  const subtotal = purchase_cost + transport_cost + box_cost + pouch_cost;
+  const wastage_cost = subtotal * (wastage / 100);
+  const total_cost = subtotal + wastage_cost;
+
+  const cost_per_box = total_boxes > 0 ? total_cost / total_boxes : 0;
+  const cost_per_kg = qty_kg > 0 ? total_cost / qty_kg : 0;
+
+  const my_m = cost_per_box * (my_margin / 100);
+  const bil_c = cost_per_box * (bil_comm / 100);
+  const retailer_price = cost_per_box + my_m + bil_c;
+  const retailer_mrp = retailer_price * (1 + retailer_margin / 100);
+  const total_profit = my_m * total_boxes;
+  const total_bil = bil_c * total_boxes;
+
+  document.getElementById('t_result_cost').innerHTML = `
+    ${row('Total Sticks', Math.round(total_pcs).toLocaleString('en-IN') + ' pcs')}
+    ${row('Total Boxes', Math.round(total_boxes).toLocaleString('en-IN'))}
+    ${row('Purchase Cost', fmtInt(purchase_cost))}
+    ${row('Transport', fmtInt(transport_cost))}
+    ${row('Box Cost', fmtInt(box_cost))}
+    ${row('Pouch Cost', fmtInt(pouch_cost))}
+    ${row('Wastage (' + wastage + '%)', fmtInt(wastage_cost))}
+    <div class="section-title">Summary</div>
+    ${row('Total Cost', fmtInt(total_cost))}
+    ${row('Cost per Box', fmt(cost_per_box))}
+    ${row('Cost per KG', fmt(cost_per_kg))}
+  `;
+
+  document.getElementById('t_result_pricing').innerHTML = `
+    ${row('Cost per Box', fmt(cost_per_box))}
+    ${row('My Margin (' + my_margin + '%)', fmt(my_m))}
+    ${row('BIL Commission (' + bil_comm + '%)', fmt(bil_c))}
+    ${highlight('Retailer Price / Box', fmt(retailer_price))}
+    ${row('Retailer MRP', fmt(retailer_mrp))}
+    <div class="section-title">Total Earning</div>
+    ${row('My Profit', fmtInt(total_profit), 'profit-positive')}
+    ${row('BIL Earning', fmtInt(total_bil))}
+    ${highlight('Total Profit', fmtInt(total_profit), 'profit-positive')}
+  `;
+}
+
+// ============ MANUFACTURE CALC ============
+function calculateManufacture() {
+  const get = id => parseFloat(document.getElementById(id).value) || 0;
+
+  const stick_rate = get('m_stick_rate');
+  const premix_rate = get('m_premix_rate');
+  const sticks_per_kg = get('m_sticks_per_kg');
+  const premix_ratio = get('m_premix_ratio');
+  const oil_rate = get('m_oil_rate');
+  const perfume_rate = get('m_perfume_rate');
+  const oil_qty = get('m_oil_qty');
+  const perfume_qty = get('m_perfume_qty');
+  const total_pcs = get('m_total_pcs');
+  const pcs_per_box = get('m_pcs_per_box');
+  const box_rate = get('m_box_rate');
+  const pouch_rate = get('m_pouch_rate');
+  const pouch_qty = get('m_pouch_qty');
+  const labour_rate = get('m_labour_rate');
+  const wastage_pct = get('m_wastage');
+  const transport = get('m_transport');
+  const my_margin = get('m_my_margin');
+  const bil_comm = get('m_bil_commission');
+  const retailer_margin = get('m_retailer_margin');
+
+  const total_boxes = pcs_per_box > 0 ? total_pcs / pcs_per_box : 0;
+  const stick_kg = sticks_per_kg > 0 ? total_pcs / sticks_per_kg : 0;
+  const premix_kg = stick_kg * premix_ratio;
+  const raw_kg = stick_kg + premix_kg;
+  const ratio = raw_kg / 40;
+
+  const oil_cost = oil_qty * ratio * oil_rate;
+  const perfume_cost = perfume_qty * ratio * perfume_rate;
+  const labour_cost = raw_kg * labour_rate;
+  const transport_cost = raw_kg * transport;
+  const box_cost = total_boxes * box_rate;
+  const pouch_cost = pouch_qty * pouch_rate;
+  const packing_total = box_cost + pouch_cost;
+
+  const stick_cost = stick_kg * stick_rate;
+  const premix_cost = premix_kg * premix_rate;
+  const raw_cost = stick_cost + premix_cost;
+
+  const material = raw_cost + oil_cost + perfume_cost + labour_cost + transport_cost;
+  const wastage_cost = material * (wastage_pct / 100);
+  const total_material = material + wastage_cost;
+  const total_cost = total_material + packing_total;
+  const cost_per_box = total_boxes > 0 ? total_cost / total_boxes : 0;
+  const material_per_kg = raw_kg > 0 ? total_material / raw_kg : 0;
+
+  const my_m = cost_per_box * (my_margin / 100);
+  const bil_c = cost_per_box * (bil_comm / 100);
+  const retailer_price = cost_per_box + my_m + bil_c;
+  const retailer_mrp = retailer_price * (1 + retailer_margin / 100);
+  const total_profit = my_m * total_boxes;
+  const total_bil = bil_c * total_boxes;
+
+  document.getElementById('m_result_cost').innerHTML = `
+    ${row('Total Boxes', Math.round(total_boxes).toLocaleString('en-IN'))}
+    ${row('Stick Needed', stick_kg.toFixed(2) + ' kg')}
+    ${row('Premix Needed', premix_kg.toFixed(2) + ' kg')}
+    ${row('Total Raw', raw_kg.toFixed(2) + ' kg')}
+    <div class="section-title">Material</div>
+    ${row('Stick Cost', fmtInt(stick_cost))}
+    ${row('Premix Cost', fmtInt(premix_cost))}
+    ${row('DEP Oil', fmtInt(oil_cost))}
+    ${row('Perfume', fmtInt(perfume_cost))}
+    ${row('Labour', fmtInt(labour_cost))}
+    ${row('Transport', fmtInt(transport_cost))}
+    ${row('Wastage (' + wastage_pct + '%)', fmtInt(wastage_cost))}
+    <div class="section-title">Packing</div>
+    ${row('Boxes', fmtInt(box_cost))}
+    ${row('Pouch', fmtInt(pouch_cost))}
+    <div class="section-title">Summary</div>
+    ${row('Total Cost', fmtInt(total_cost))}
+    ${row('Material per KG', fmt(material_per_kg))}
+    ${row('Cost per Box', fmt(cost_per_box))}
+  `;
+
+  document.getElementById('m_result_pricing').innerHTML = `
+    ${row('Cost per Box', fmt(cost_per_box))}
+    ${row('My Margin (' + my_margin + '%)', fmt(my_m))}
+    ${row('BIL Commission (' + bil_comm + '%)', fmt(bil_c))}
+    ${highlight('Retailer Price / Box', fmt(retailer_price))}
+    ${row('Retailer MRP', fmt(retailer_mrp))}
+    <div class="section-title">Total Earning</div>
+    ${row('My Profit', fmtInt(total_profit), 'profit-positive')}
+    ${row('BIL Earning', fmtInt(total_bil))}
+    ${highlight('Total Profit', fmtInt(total_profit), 'profit-positive')}
+  `;
+}
+
+// ============ SAVE / LOAD ============
+function saveLocal(type) {
+  const data = {};
+  Object.keys(DEFAULTS[type]).forEach(k => {
+    data[k] = parseFloat(document.getElementById(k).value) || 0;
+  });
+  localStorage.setItem('agb_' + type, JSON.stringify(data));
+  const sid = type === 'trading' ? 't_status' : 'm_status';
+  document.getElementById(sid).textContent = '✅ Saved!';
+  document.getElementById(sid).style.color = '#10b981';
+}
+
+function loadLocal(type) {
+  const saved = localStorage.getItem('agb_' + type);
+  const sid = type === 'trading' ? 't_status' : 'm_status';
+  if (!saved) {
+    document.getElementById(sid).textContent = '⚠️ Koi saved data nahi';
+    document.getElementById(sid).style.color = '#f59e0b';
+    return;
+  }
+  const data = JSON.parse(saved);
+  Object.keys(data).forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = data[k];
+  });
+  if (type === 'trading') calculateTrading();
+  else calculateManufacture();
+  document.getElementById(sid).textContent = '✅ Loaded!';
+  document.getElementById(sid).style.color = '#10b981';
+}
+
+function resetDefaults(type) {
+  Object.keys(DEFAULTS[type]).forEach(k => {
+    document.getElementById(k).value = DEFAULTS[type][k];
+  });
+  if (type === 'trading') calculateTrading();
+  else calculateManufacture();
+  const sid = type === 'trading' ? 't_status' : 'm_status';
+  document.getElementById(sid).textContent = '🔄 Reset';
+  document.getElementById(sid).style.color = '#64748b';
+}
+
+// ============ LISTENERS ============
+document.querySelectorAll('#page-trading input').forEach(inp => {
+  inp.addEventListener('input', calculateTrading);
+});
+document.querySelectorAll('#page-manufacture input').forEach(inp => {
+  inp.addEventListener('input', calculateManufacture);
+});
+
+// ============ INIT ============
+calculateTrading();
+calculateManufacture();
+</script>
+</body>
+</html>
